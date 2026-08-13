@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(./mvnw -o compile)",
-      "Bash(npm run *)",
-      "Bash(./mvnw -o clean compile)"
-    ]
-  }
-}
