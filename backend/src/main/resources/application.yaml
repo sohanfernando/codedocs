@@ -70,10 +70,19 @@ ingestion:
   chunk-overlap-lines: 10
   chunk-max-chars: 4000
   clone-timeout: 120s
+  # A repo still in a non-terminal status this long after creation is
+  # presumed stuck (crashed worker, hung Gemini call, pod restart mid-job)
+  # rather than just slow — see StuckIngestionMonitor.
+  stuck-after: 30m
 
 app:
   cors:
     allowed-origins: ${CORS_ORIGINS:}
+
+# Sentry (SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_TRACES_SAMPLE_RATE) is read
+# directly from the environment in CodedocsApplication.main, not bound here —
+# see the comment on the sentry dependency in pom.xml for why it bypasses
+# Spring Boot's own autoconfiguration.
 
 logging:
   level:

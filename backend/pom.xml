@@ -30,6 +30,7 @@
 		<java.version>21</java.version>
 		<jgit.version>6.10.0.202406032230-r</jgit.version>
 		<bucket4j.version>8.16.1</bucket4j.version>
+		<sentry.version>8.53.0</sentry.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -78,6 +79,21 @@
 			<groupId>com.bucket4j</groupId>
 			<artifactId>bucket4j_jdk17-core</artifactId>
 			<version>8.16.1</version>
+		</dependency>
+
+		<!--
+			Error tracking. The Spring Boot starter (sentry-spring-boot-starter-jakarta)
+			is NOT used here: as of 8.53.0 it still reflects over
+			org.springframework.boot.web.client.RestClientCustomizer, a class Spring
+			Boot 4 moved/removed, which throws NoClassDefFoundError during context
+			refresh and takes the whole app down. The plain SDK below has no Boot
+			autoconfiguration to go stale, and is wired up by hand in
+			CodedocsApplication + GlobalExceptionHandler instead.
+		-->
+		<dependency>
+			<groupId>io.sentry</groupId>
+			<artifactId>sentry</artifactId>
+			<version>${sentry.version}</version>
 		</dependency>
 
 		<dependency>

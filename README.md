@@ -62,10 +62,29 @@ The app starts on `http://localhost:5173` and talks to the backend on `:8080`.
 
 ## Environment variables
 
-Set in `backend/.env` (see `backend/.env.example`):
+Backend — set in `backend/.env` (see `backend/.env.example`):
 
 | Variable | Purpose |
 |---|---|
 | `DB_PASSWORD` | Postgres password (matches `docker-compose.yml`) |
 | `GEMINI_API_KEY` | Google Gemini API key, used for embeddings and chat |
 | `CORS_ORIGINS` | Allowed origins for the frontend (defaults to `http://localhost:5173`) |
+| `SENTRY_DSN` | Optional. Unset = error tracking disabled (the default locally) |
+| `SENTRY_ENVIRONMENT` | Optional, defaults to `local`. Set to `production`/`staging` etc. on deploy |
+| `SENTRY_TRACES_SAMPLE_RATE` | Optional, defaults to `0.1` |
+
+Frontend — set in `frontend/.env` (see `frontend/.env.example`):
+
+| Variable | Purpose |
+|---|---|
+| `VITE_SENTRY_DSN` | Optional. Unset = error tracking disabled (the default locally) |
+
+## Monitoring
+
+- **Error tracking** ([Sentry](https://sentry.io)) — wired into both sides but inert unless `SENTRY_DSN` / `VITE_SENTRY_DSN` are set, so it costs nothing locally. Backend: unexpected exceptions (`GlobalExceptionHandler`'s catch-all and `AiProviderException`) are reported with the same `errorId` returned to the caller, so a support conversation ("reference: xyz") jumps straight to the matching event. Frontend: uncaught errors and a top-level `ErrorBoundary` around the whole app report render crashes instead of leaving a blank tab.
+
+  > The Spring Boot starter (`sentry-spring-boot-starter-jakarta`) isn't used — as of Sentry 8.53.0 it still reflects on a class Spring Boot 4 moved, which throws `NoClassDefFoundError` during context startup. The plain SDK is initialized by hand in `CodedocsApplication` instead.
+
+- **Stuck ingestion detection** (`StuckIngestionMonitor`) — a scheduled check (every 10 minutes) that flags any repo still in a non-terminal `RepoStatus` (`PENDING`/`CLONING`/`CHUNKING`/`EMBEDDING`) longer than `ingestion.stuck-after` (default 30m) — a crashed worker or a hung Gemini call can otherwise leave a repo "Indexing…" forever with nothing surfacing it. Logs a warning and reports to Sentry; it never mutates repo state itself.
+
+- **Health check** — `GET /actuator/health` (unauthenticated) is the endpoint to point an uptime checker at once this is deployed somewhere.

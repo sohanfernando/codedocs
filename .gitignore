@@ -1,0 +1,7 @@
+# Editor/IDE and OS files that can land at the repo root regardless of which
+# sub-project (backend/ or frontend/) you're working in — those each have
+# their own more specific .gitignore for build output and dependencies.
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

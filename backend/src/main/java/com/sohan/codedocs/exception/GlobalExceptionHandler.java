@@ -1,5 +1,6 @@
 package com.sohan.codedocs.exception;
 
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +68,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AiProviderException.class)
     public ResponseEntity<ErrorResponse> handleAiProvider(AiProviderException ex) {
         log.error("AI provider failure", ex);
+        Sentry.captureException(ex);
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .body(new ErrorResponse("AI_PROVIDER_ERROR",
                         "The AI service is currently unavailable."));
@@ -83,6 +85,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnexpected(RuntimeException ex) {
         String errorId = UUID.randomUUID().toString();
         log.error("Unhandled exception [errorId={}]", errorId, ex);
+        // Tagged with the same errorId a caller can quote back to us, so a
+        // support conversation ("reference: xyz") jumps straight to the
+        // matching Sentry event instead of a log grep.
+        Sentry.captureException(ex, scope -> scope.setTag("errorId", errorId));
         return ResponseEntity.internalServerError()
                 .body(new ErrorResponse("INTERNAL_ERROR",
                         "An unexpected error occurred. Reference: " + errorId));

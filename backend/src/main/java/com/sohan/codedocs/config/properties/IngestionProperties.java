@@ -15,5 +15,6 @@ public record IngestionProperties(
         @Min(10) int chunkWindowLines,
         @Min(0) int chunkOverlapLines,
         @Min(1) int chunkMaxChars,
-        Duration cloneTimeout
+        Duration cloneTimeout,
+        Duration stuckAfter
 ) {}
