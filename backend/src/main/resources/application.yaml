@@ -1,0 +1,82 @@
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+    include-message: never
+  tomcat:
+    max-swallow-size: 2MB
+  shutdown: graceful
+
+spring:
+  application:
+    name: codedocs
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/codedocs}
+    username: ${DB_USERNAME:codedocs}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      leak-detection-threshold: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate          # Flyway owns the schema; Hibernate only checks it
+    open-in-view: false           # no lazy loading during view rendering
+    properties:
+      hibernate:
+        jdbc.batch_size: 50
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+
+  servlet:
+    multipart:
+      enabled: false              # no upload endpoints — do not accept multipart
+
+  lifecycle:
+    timeout-per-shutdown-phase: 60s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info      # never expose env, configprops, or heapdump
+  endpoint:
+    health:
+      show-details: never
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
+  base-url: https://generativelanguage.googleapis.com
+  embedding-model: gemini-embedding-001
+  chat-model: gemini-2.5-flash
+  embedding-dimensions: 768
+  embedding-batch-size: 50
+  request-timeout: 60s
+  temperature: 0.2
+  max-output-tokens: 2048
+
+ingestion:
+  max-files-per-repo: 2000
+  max-file-bytes: 500000
+  max-total-bytes: 100000000
+  chunk-window-lines: 60
+  chunk-overlap-lines: 10
+  chunk-max-chars: 4000
+  clone-timeout: 120s
+
+app:
+  cors:
+    allowed-origins: ${CORS_ORIGINS:}
+
+logging:
+  level:
+    root: INFO
+    com.sohan.codedocs: INFO
+    org.hibernate.SQL: WARN

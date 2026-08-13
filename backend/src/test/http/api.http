@@ -1,0 +1,45 @@
+### Health check
+GET http://localhost:8080/actuator/health
+
+### 1. Validation should reject a bad URL (expect 400)
+POST http://localhost:8080/api/repositories
+Content-Type: application/json
+
+{
+  "gitUrl": "not-a-github-url"
+}
+
+### 2. Validation should reject a non-GitHub host (expect 400)
+POST http://localhost:8080/api/repositories
+Content-Type: application/json
+
+{
+  "gitUrl": "https://gitlab.com/some/repo"
+}
+
+### 3. Submit a real repo (expect 202 + an id)
+POST http://localhost:8080/api/repositories
+Content-Type: application/json
+
+{
+  "gitUrl": "https://github.com/sohanfernando/task-tracker"
+}
+
+### 4. Poll status — paste the id from step 3
+GET http://localhost:8080/api/repositories/43ee4eae-a19a-4b2d-9b21-18c5e6f950b5
+
+### 5. List all repos
+GET http://localhost:8080/api/repositories
+
+### 6. Ask a question — only works once status is READY
+POST http://localhost:8080/api/chat
+Content-Type: application/json
+
+{
+  "repoId": "43ee4eae-a19a-4b2d-9b21-18c5e6f950b5",
+  "question": "Is tailwind css used in this project's frontend?"
+}
+
+### List models available to my key
+GET https://generativelanguage.googleapis.com/v1beta/models
+x-goog-api-key: {{geminiKey}}
