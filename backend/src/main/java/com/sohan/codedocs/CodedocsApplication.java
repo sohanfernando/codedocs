@@ -22,6 +22,10 @@ public class CodedocsApplication {
 	 * dependency in pom.xml. A blank SENTRY_DSN (the default outside
 	 * production) leaves the SDK disabled: capture calls become no-ops
 	 * instead of throwing.
+	 *
+	 * SENTRY_DSN is read once, when this JVM process starts — a devtools
+	 * hot-reload after editing .env will NOT pick up a new value, only a
+	 * genuine process restart will.
 	 */
 	private static void initSentry() {
 		Sentry.init(options -> {
