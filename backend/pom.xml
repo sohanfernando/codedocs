@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jgit.version>6.10.0.202406032230-r</jgit.version>
 		<bucket4j.version>8.16.1</bucket4j.version>
 		<sentry.version>8.53.0</sentry.version>
