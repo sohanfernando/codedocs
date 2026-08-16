@@ -1,5 +1,8 @@
 # codedocs
 
+[![CI](https://github.com/sohanfernando/codedocs/actions/workflows/ci.yml/badge.svg)](https://github.com/sohanfernando/codedocs/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=sohanfernando_codedocs&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=sohanfernando_codedocs)
+
 Ask questions about any GitHub repository and get answers grounded in its actual code, with citations back to the exact files and lines they came from.
 
 Point it at a repo, it clones and indexes the codebase (chunked + embedded into pgvector), and you can then chat with it — the assistant answers using retrieval over your code rather than general knowledge, and every claim links back to its source chunk.
@@ -11,7 +14,7 @@ Point it at a repo, it clones and indexes the codebase (chunked + embedded into 
 - PostgreSQL + [pgvector](https://github.com/pgvector/pgvector) for embedding storage/similarity search, via Hibernate's vector support
 - Flyway for schema migrations
 - [JGit](https://www.eclipse.org/jgit/) for cloning/syncing repositories
-- Google Gemini for embeddings (`gemini-embedding-001`) and chat completion (`gemini-2.5-flash`)
+- Google Gemini for embeddings (`gemini-embedding-001`) and chat completion (`gemini-3.6-flash`)
 - Bucket4j for rate limiting
 
 **Frontend** — `frontend/`
@@ -88,3 +91,13 @@ Frontend — set in `frontend/.env` (see `frontend/.env.example`):
 - **Stuck ingestion detection** (`StuckIngestionMonitor`) — a scheduled check (every 10 minutes) that flags any repo still in a non-terminal `RepoStatus` (`PENDING`/`CLONING`/`CHUNKING`/`EMBEDDING`) longer than `ingestion.stuck-after` (default 30m) — a crashed worker or a hung Gemini call can otherwise leave a repo "Indexing…" forever with nothing surfacing it. Logs a warning and reports to Sentry; it never mutates repo state itself.
 
 - **Health check** — `GET /actuator/health` (unauthenticated) is the endpoint to point an uptime checker at once this is deployed somewhere.
+
+## CI/CD & code quality
+
+Every push to `main` and every PR runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+
+1. **Backend** — `mvn verify`: compiles, runs the Testcontainers-backed test suite (spins up a real pgvector-enabled Postgres), and generates a JaCoCo coverage report.
+2. **Frontend** — `npm ci`, `eslint`, `vite build` (which runs the TypeScript compiler as part of the build).
+3. **[SonarQube Cloud](https://sonarcloud.io/summary/new_code?id=sohanfernando_codedocs)** scan — one project covering both halves of the monorepo (config in [`sonar-project.properties`](sonar-project.properties)), reporting security/reliability/maintainability issues and the JaCoCo coverage from step 1.
+
+This is CI-based analysis, not SonarQube Cloud's zero-config "Automatic Analysis" mode — that alternative can't run your test suite, so it can never report real coverage, and it gives no visibility into scanner logs if something goes wrong.
