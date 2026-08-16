@@ -55,7 +55,7 @@ gemini:
   api-key: ${GEMINI_API_KEY}
   base-url: https://generativelanguage.googleapis.com
   embedding-model: gemini-embedding-001
-  chat-model: gemini-2.5-flash
+  chat-model: gemini-3.6-flash
   embedding-dimensions: 768
   embedding-batch-size: 50
   request-timeout: 60s
