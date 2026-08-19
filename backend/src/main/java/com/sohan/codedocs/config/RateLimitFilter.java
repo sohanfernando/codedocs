@@ -25,11 +25,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final int INGEST_CAPACITY = 5;    // repos per hour per IP
-    private static final int CHAT_CAPACITY = 30;     // questions per minute per IP
+    private static final int INGEST_CAPACITY = 5;     // repos per hour per IP
+    private static final int CHAT_CAPACITY = 30;      // questions per minute per IP
+    private static final int LOGIN_CAPACITY = 10;     // attempts per 15 minutes per IP
+    private static final int REGISTER_CAPACITY = 5;   // registrations per hour per IP
 
     private final Map<String, Bucket> ingestBuckets = new ConcurrentHashMap<>();
     private final Map<String, Bucket> chatBuckets = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> registerBuckets = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
 
     @Override
@@ -50,6 +54,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else if (path.startsWith("/api/chat")) {
             bucket = chatBuckets.computeIfAbsent(clientKey(request),
                     k -> newBucket(CHAT_CAPACITY, Duration.ofMinutes(1)));
+        } else if (path.equals("/api/auth/login")) {
+            bucket = loginBuckets.computeIfAbsent(clientKey(request),
+                    k -> newBucket(LOGIN_CAPACITY, Duration.ofMinutes(15)));
+        } else if (path.equals("/api/auth/register")) {
+            bucket = registerBuckets.computeIfAbsent(clientKey(request),
+                    k -> newBucket(REGISTER_CAPACITY, Duration.ofHours(1)));
         }
 
         if (bucket != null && !bucket.tryConsume(1)) {
